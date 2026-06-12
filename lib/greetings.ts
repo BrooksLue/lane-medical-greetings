@@ -18,6 +18,7 @@ export type GreetingLog = {
   status: "sent" | "failed" | "pending";
   sentAt: string;
   message: string;
+  error?: string;
 };
 
 export function getTodaysEvents(patients: Patient[]): GreetingEvent[] {
