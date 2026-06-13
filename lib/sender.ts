@@ -1,13 +1,5 @@
-import twilio from "twilio";
 import { Patient } from "./patients";
 import { GreetingEvent, GreetingLog, buildMessage } from "./greetings";
-
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-const sendgridEnabled = !!process.env.SENDGRID_API_KEY;
 
 export async function sendGreeting(
   patient: Patient,
@@ -27,13 +19,18 @@ export async function sendGreeting(
 
   try {
     if (channel === "sms") {
+      const twilio = (await import("twilio")).default;
+      const twilioClient = twilio(
+        process.env.TWILIO_ACCOUNT_SID,
+        process.env.TWILIO_AUTH_TOKEN
+      );
       await twilioClient.messages.create({
         body,
         from: process.env.TWILIO_PHONE_NUMBER,
         to: patient.phone,
       });
     } else {
-      if (!sendgridEnabled) {
+      if (!process.env.SENDGRID_API_KEY) {
         return { ...logBase, status: "failed", error: "Email not configured — SendGrid API key not set." };
       }
       const sgMail = (await import("@sendgrid/mail")).default;
