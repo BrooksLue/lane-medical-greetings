@@ -58,7 +58,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "patients" | "logs" | "import">("dashboard");
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ imported: number; patients: Patient[] } | null>(null);
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; total: number } | null>(null);
   const [importError, setImportError] = useState("");
   const [sendTime, setSendTime] = useState("08:00");
   const [timeSaved, setTimeSaved] = useState(false);
@@ -352,13 +352,14 @@ export default function Dashboard() {
                 )}
 
                 {importResult && (
-                  <div className="space-y-3">
-                    <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 text-green-700 text-sm font-medium">
-                      ✓ {importResult.imported} patients parsed successfully. Copy the data below into lib/patients.ts or connect a database to save permanently.
-                    </div>
-                    <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                      <pre className="text-green-400 text-xs leading-relaxed">{JSON.stringify(importResult.patients, null, 2)}</pre>
-                    </div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-4 space-y-1">
+                    <p className="text-green-700 font-semibold">✓ Import complete — patients saved automatically!</p>
+                    <p className="text-green-600 text-sm">
+                      {importResult.imported} new patient{importResult.imported !== 1 ? "s" : ""} added
+                      {importResult.skipped > 0 ? `, ${importResult.skipped} duplicate${importResult.skipped !== 1 ? "s" : ""} skipped` : ""}.
+                      {" "}{importResult.total} total patients in system.
+                    </p>
+                    <p className="text-green-600 text-sm">Head to the <strong>Patients</strong> tab to see them, or <strong>Dashboard</strong> to send greetings.</p>
                   </div>
                 )}
               </div>

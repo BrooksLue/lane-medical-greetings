@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
-import { patients } from "@/lib/patients";
+import { patients as seedPatients } from "@/lib/patients";
+import { getStoredPatients } from "@/lib/store";
 import { getTodaysEvents } from "@/lib/greetings";
 
 export async function GET() {
+  const stored = await getStoredPatients();
+  const patients = stored.length > 0 ? stored : seedPatients;
+
   const events = getTodaysEvents(patients);
   const todayIds = new Set(events.map((e) => e.patientId));
 

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
+    "@vercel/kv": "^3.0.0",
     "date-fns": "^4.4.0",
     "next": "16.2.9",
     "node-cron": "^4.2.1",
