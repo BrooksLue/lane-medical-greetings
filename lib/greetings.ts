@@ -105,7 +105,7 @@ export function buildMessage(
       subject: `One Year Stronger — ${practice}`,
       body:
         channel === "sms"
-          ? `Hi ${name}! It's been one year since your procedure at ${practice}. We're so proud of your recovery. Keep up the great work! 💪`
+          ? `Hi Eric Williams! It's been one year since your procedure at ${practice}. We're so proud of your recovery. Keep up the great work! 💪`
           : `<p>Hi ${name},</p><p>One year ago, you took an important step toward better health at <strong>${practice}</strong>.</p><p>We're incredibly proud of how far you've come. Your strength and commitment inspire us every day.</p><p>If you ever have questions or need a check-up, we're always here for you.</p><p>Warmly,<br/>The ${practice} Team</p>`,
     };
   }
