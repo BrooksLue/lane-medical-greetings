@@ -60,9 +60,13 @@ export default function Dashboard() {
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<{ imported: number; patients: Patient[] } | null>(null);
   const [importError, setImportError] = useState("");
+  const [sendTime, setSendTime] = useState("08:00");
+  const [timeSaved, setTimeSaved] = useState(false);
   const [today, setToday] = useState("");
 
   useEffect(() => {
+    const saved = localStorage.getItem("sendTime");
+    if (saved) setSendTime(saved);
     setToday(format(new Date(), "EEEE, MMMM d, yyyy"));
     fetch("/api/patients")
       .then((r) => r.json())
@@ -144,6 +148,33 @@ export default function Dashboard() {
               <StatCard label="Total Patients" value={patients.length} color="blue" />
               <StatCard label="Events Today" value={todaysEvents.length} color="pink" />
               <StatCard label="Greetings Sent" value={logs.filter((l) => l.status === "sent").length} color="green" />
+            </div>
+
+            {/* Scheduled Send Time */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-4">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <p className="font-semibold text-gray-900">Scheduled Send Time</p>
+                  <p className="text-sm text-gray-500 mt-0.5">Greetings auto-send daily at this time (UTC). Manual send below overrides this.</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="time"
+                    value={sendTime}
+                    onChange={(e) => { setSendTime(e.target.value); setTimeSaved(false); }}
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={() => { localStorage.setItem("sendTime", sendTime); setTimeSaved(true); setTimeout(() => setTimeSaved(false), 2000); }}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  >
+                    {timeSaved ? "✓ Saved" : "Save Time"}
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg px-4 py-2 text-sm text-blue-700">
+                🕐 Next auto-send: <strong>{sendTime} UTC</strong> — to change the server schedule, update <code className="bg-blue-100 px-1 rounded">SEND_TIME</code> in your Vercel environment variables.
+              </div>
             </div>
 
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
