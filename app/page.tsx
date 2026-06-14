@@ -58,7 +58,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "patients" | "logs" | "import">("dashboard");
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; total: number } | null>(null);
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; total: number; saved: boolean; saveMessage: string | null } | null>(null);
   const [importError, setImportError] = useState("");
   const [sendTime, setSendTime] = useState("08:00");
   const [timeSaved, setTimeSaved] = useState(false);
@@ -373,14 +373,22 @@ export default function Dashboard() {
                 )}
 
                 {importResult && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-4 space-y-1">
-                    <p className="text-green-700 font-semibold">✓ Import complete — patients saved automatically!</p>
-                    <p className="text-green-600 text-sm">
-                      {importResult.imported} new patient{importResult.imported !== 1 ? "s" : ""} added
-                      {importResult.skipped > 0 ? `, ${importResult.skipped} duplicate${importResult.skipped !== 1 ? "s" : ""} skipped` : ""}.
-                      {" "}{importResult.total} total patients in system.
-                    </p>
-                    <p className="text-green-600 text-sm">Head to the <strong>Patients</strong> tab to see them, or <strong>Dashboard</strong> to send greetings.</p>
+                  <div className="space-y-2">
+                    <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-4 space-y-1">
+                      <p className="text-green-700 font-semibold">✓ {importResult.imported} new patient{importResult.imported !== 1 ? "s" : ""} imported{importResult.saved ? " and saved!" : "!"}</p>
+                      <p className="text-green-600 text-sm">
+                        {importResult.skipped > 0 ? `${importResult.skipped} duplicate${importResult.skipped !== 1 ? "s" : ""} skipped. ` : ""}
+                        {importResult.total} total patients in system.
+                      </p>
+                      {importResult.saved && <p className="text-green-600 text-sm">Head to the <strong>Patients</strong> tab to see them, or <strong>Dashboard</strong> to send greetings.</p>}
+                    </div>
+                    {!importResult.saved && importResult.saveMessage && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
+                        <p className="text-yellow-800 font-semibold text-sm">⚠ Patients parsed but not saved permanently</p>
+                        <p className="text-yellow-700 text-sm mt-1">{importResult.saveMessage}</p>
+                        <p className="text-yellow-700 text-sm mt-1">To fix: go to your <strong>Vercel dashboard → Storage → Create KV Database → Connect</strong>, then redeploy.</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

@@ -72,11 +72,13 @@ export async function POST(req: NextRequest) {
   const newPatients = imported.filter((p) => !existingIds.has(p.phone));
   const merged = [...existing, ...newPatients];
 
-  await savePatients(merged);
+  const saveResult = await savePatients(merged);
 
   return NextResponse.json({
     imported: newPatients.length,
     skipped: imported.length - newPatients.length,
     total: merged.length,
+    saved: saveResult.ok,
+    saveMessage: saveResult.message ?? null,
   });
 }
