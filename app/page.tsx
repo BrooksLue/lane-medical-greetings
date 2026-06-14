@@ -86,10 +86,12 @@ export default function Dashboard() {
     form.append("file", importFile);
     try {
       const res = await fetch("/api/import-patients", { method: "POST", body: form });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { setImportError(`Server response was not JSON: ${text.slice(0, 300)}`); setImporting(false); return; }
       if (data.error) { setImportError(data.error); } else { setImportResult(data); }
-    } catch {
-      setImportError("Failed to parse file. Make sure it is a valid .xlsx or .csv file.");
+    } catch (e) {
+      setImportError(`Network error: ${e}`);
     }
     setImporting(false);
   }
@@ -323,20 +325,39 @@ export default function Dashboard() {
                 </div>
 
                 {/* File upload */}
-                <div
-                  className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
-                  onClick={() => document.getElementById("file-input")?.click()}
-                >
-                  <p className="text-3xl mb-2">📂</p>
-                  <p className="font-medium text-gray-700">{importFile ? importFile.name : "Click to select your Excel or CSV file"}</p>
-                  <p className="text-sm text-gray-400 mt-1">.xlsx, .xls, .csv supported</p>
-                  <input
-                    id="file-input"
-                    type="file"
-                    accept=".xlsx,.xls,.csv"
-                    className="hidden"
-                    onChange={(e) => { setImportFile(e.target.files?.[0] ?? null); setImportResult(null); setImportError(""); }}
-                  />
+                {/* Download template */}
+                <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-800">Step 1 — Download the template</p>
+                    <p className="text-xs text-blue-600 mt-0.5">Fill it in with patient data, then upload below.</p>
+                  </div>
+                  <a
+                    href="/lane-medical-patient-template.csv"
+                    download="Lane-Medical-Patient-Template.csv"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
+                  >
+                    ⬇ Download Template
+                  </a>
+                </div>
+
+                {/* File upload */}
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Step 2 — Upload completed file (.csv)</p>
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                    onClick={() => document.getElementById("file-input")?.click()}
+                  >
+                    <p className="text-3xl mb-2">📂</p>
+                    <p className="font-medium text-gray-700">{importFile ? importFile.name : "Click to select your CSV file"}</p>
+                    <p className="text-sm text-gray-400 mt-1">.csv recommended · .xlsx also supported</p>
+                    <input
+                      id="file-input"
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      className="hidden"
+                      onChange={(e) => { setImportFile(e.target.files?.[0] ?? null); setImportResult(null); setImportError(""); }}
+                    />
+                  </div>
                 </div>
 
                 <button

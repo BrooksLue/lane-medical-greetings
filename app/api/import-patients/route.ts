@@ -3,14 +3,35 @@ import * as XLSX from "xlsx";
 import { savePatients, getStoredPatients } from "@/lib/store";
 
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
+  let formData;
+  try {
+    formData = await req.formData();
+  } catch (e) {
+    return NextResponse.json({ error: `Could not read form data: ${e}` }, { status: 400 });
+  }
+
   const file = formData.get("file") as File;
 
-  if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+  if (!file) return NextResponse.json({ error: "No file received — make sure you selected a file before clicking Import." }, { status: 400 });
+  if (!file.size) return NextResponse.json({ error: "File is empty." }, { status: 400 });
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
+  console.log("Importing file:", file.name, "size:", file.size, "type:", file.type);
+
+  let buffer: Buffer;
+  try {
+    buffer = Buffer.from(await file.arrayBuffer());
+  } catch (e) {
+    return NextResponse.json({ error: `Could not read file: ${e}` }, { status: 400 });
+  }
+  let workbook;
+  try {
+    workbook = XLSX.read(buffer, { type: "buffer", cellDates: true });
+  } catch (e) {
+    return NextResponse.json({ error: `Could not parse file — is it a valid .xlsx or .csv? Error: ${e}` }, { status: 400 });
+  }
+
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  if (!sheet) return NextResponse.json({ error: "Spreadsheet has no sheets." }, { status: 400 });
   const rows: Record<string, string>[] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
   const get = (row: Record<string, string>, ...keys: string[]) => {
