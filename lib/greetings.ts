@@ -1,4 +1,4 @@
-import { format, isToday, parseISO } from "date-fns";
+import { format, parseISO, addDays } from "date-fns";
 import { Patient } from "./patients";
 
 export type GreetingEvent = {
@@ -81,6 +81,71 @@ export function getTodaysEvents(patients: Patient[]): GreetingEvent[] {
   }
 
   return events;
+}
+
+export type UpcomingEvent = {
+  patientId: string;
+  patientName: string;
+  type: GreetingEvent["type"];
+  label: string;
+  date: string;       // YYYY-MM-DD
+  daysAway: number;
+  channels: ("sms" | "email")[];
+};
+
+export function getUpcomingEvents(patients: Patient[], daysAhead = 30): UpcomingEvent[] {
+  const today = new Date();
+  const upcoming: UpcomingEvent[] = [];
+
+  for (const p of patients) {
+    if (!p.active) continue;
+    const channels: ("sms" | "email")[] =
+      p.preferredContact === "both" ? ["sms", "email"] : [p.preferredContact];
+
+    const checkDate = (dateStr: string, type: GreetingEvent["type"], label: string) => {
+      if (!dateStr) return;
+      const base = parseISO(dateStr);
+      // Find this year's occurrence
+      const thisYear = new Date(today.getFullYear(), base.getMonth(), base.getDate());
+      const nextYear = new Date(today.getFullYear() + 1, base.getMonth(), base.getDate());
+      const target = thisYear >= today ? thisYear : nextYear;
+      const daysAway = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (daysAway >= 0 && daysAway <= daysAhead) {
+        upcoming.push({
+          patientId: p.id,
+          patientName: p.name,
+          type,
+          label,
+          date: format(target, "yyyy-MM-dd"),
+          daysAway,
+          channels,
+        });
+      }
+    };
+
+    checkDate(p.dateOfBirth, "birthday", "Birthday");
+    if (p.procedureDate) checkDate(p.procedureDate, "procedure_anniversary", "Procedure Anniversary");
+
+    // Wellness check-in: 30 days after last visit
+    if (p.lastVisit) {
+      const checkinDate = addDays(parseISO(p.lastVisit), 30);
+      const daysAway = Math.round((checkinDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysAway >= 0 && daysAway <= daysAhead) {
+        upcoming.push({
+          patientId: p.id,
+          patientName: p.name,
+          type: "wellness_checkin",
+          label: "30-Day Wellness Check-In",
+          date: format(checkinDate, "yyyy-MM-dd"),
+          daysAway,
+          channels,
+        });
+      }
+    }
+  }
+
+  return upcoming.sort((a, b) => a.daysAway - b.daysAway);
 }
 
 export function buildMessage(

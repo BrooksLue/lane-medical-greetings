@@ -27,6 +27,16 @@ type Patient = {
   hasEventToday: boolean;
 };
 
+type UpcomingEvent = {
+  patientId: string;
+  patientName: string;
+  type: EventType;
+  label: string;
+  date: string;
+  daysAway: number;
+  channels: string[];
+};
+
 type Log = {
   id: string;
   patientName: string;
@@ -52,6 +62,7 @@ const EVENT_COLORS: Record<EventType, string> = {
 export default function Dashboard() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [todaysEvents, setTodaysEvents] = useState<GreetingEvent[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -73,6 +84,7 @@ export default function Dashboard() {
       .then((data) => {
         setPatients(data.patients);
         setTodaysEvents(data.todaysEvents);
+        setUpcomingEvents(data.upcomingEvents ?? []);
         setLoading(false);
       });
   }, []);
@@ -216,6 +228,44 @@ export default function Dashboard() {
                             </span>
                           ))}
                         </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Upcoming Events */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h2 className="font-semibold text-gray-900">Upcoming Greetings — Next 30 Days</h2>
+                <span className="text-sm text-gray-400">{upcomingEvents.length} scheduled</span>
+              </div>
+              {upcomingEvents.length === 0 ? (
+                <div className="px-6 py-10 text-center text-gray-400">No upcoming events in the next 30 days.</div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {upcomingEvents.map((event, i) => (
+                    <div key={i} className="px-6 py-3 flex items-center gap-4">
+                      <span className="text-xl">{EVENT_ICONS[event.type]}</span>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 text-sm">{event.patientName}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${EVENT_COLORS[event.type]}`}>
+                            {event.label}
+                          </span>
+                          {event.channels.map((ch) => (
+                            <span key={ch} className="text-xs text-gray-400">
+                              {ch === "sms" ? "📱" : "✉️"}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-gray-700">
+                          {event.daysAway === 0 ? "Today" : event.daysAway === 1 ? "Tomorrow" : `In ${event.daysAway} days`}
+                        </p>
+                        <p className="text-xs text-gray-400">{event.date}</p>
                       </div>
                     </div>
                   ))}
