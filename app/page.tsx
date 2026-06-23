@@ -101,7 +101,17 @@ export default function Dashboard() {
       const text = await res.text();
       let data;
       try { data = JSON.parse(text); } catch { setImportError(`Server response was not JSON: ${text.slice(0, 300)}`); setImporting(false); return; }
-      if (data.error) { setImportError(data.error); } else { setImportResult(data); }
+      if (data.error) { setImportError(data.error); } else {
+        setImportResult(data);
+        // Refresh patient list and upcoming events
+        fetch("/api/patients")
+          .then((r) => r.json())
+          .then((d) => {
+            setPatients(d.patients);
+            setTodaysEvents(d.todaysEvents);
+            setUpcomingEvents(d.upcomingEvents ?? []);
+          });
+      }
     } catch (e) {
       setImportError(`Network error: ${e}`);
     }
