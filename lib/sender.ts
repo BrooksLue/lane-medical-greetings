@@ -1,6 +1,33 @@
 import { Patient } from "./patients";
 import { GreetingEvent, GreetingLog, buildMessage } from "./greetings";
 
+async function sendWhatsApp(to: string, body: string): Promise<void> {
+  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+
+  const res = await fetch(
+    `https://graph.facebook.com/v19.0/${phoneNumberId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: to.replace(/\s/g, ""),
+        type: "text",
+        text: { body },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err?.error?.message ?? `WhatsApp API error ${res.status}`);
+  }
+}
+
 export async function sendGreeting(
   patient: Patient,
   event: GreetingEvent,
@@ -19,16 +46,8 @@ export async function sendGreeting(
 
   try {
     if (channel === "sms") {
-      const twilio = (await import("twilio")).default;
-      const twilioClient = twilio(
-        process.env.TWILIO_ACCOUNT_SID,
-        process.env.TWILIO_AUTH_TOKEN
-      );
-      await twilioClient.messages.create({
-        body,
-        from: process.env.TWILIO_PHONE_NUMBER,
-        to: patient.phone,
-      });
+      // Send via WhatsApp instead of SMS
+      await sendWhatsApp(patient.phone, body);
     } else {
       if (!process.env.SENDGRID_API_KEY) {
         return { ...logBase, status: "failed", error: "Email not configured — SendGrid API key not set." };
