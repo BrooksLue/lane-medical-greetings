@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       id: String(Date.now() + i),
       name: get(row, "name", "fullname", "patientname"),
       email: get(row, "email", "emailaddress"),
-      phone: get(row, "phone", "phonenumber", "mobile", "cell"),
+      phone: (() => { const p = get(row, "phone", "phonenumber", "mobile", "cell").replace(/\s/g, ""); return p && !p.startsWith("+") ? "+" + p : p; })(),
       dateOfBirth: formatDate(get(row, "dateofbirth", "dob", "birthdate", "birthday")),
       procedureDate: formatDate(get(row, "proceduredate", "surgerydate")),
       lastVisit: formatDate(get(row, "lastvisit", "lastappointment")),
