@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
@@ -48,9 +48,9 @@ type Log = {
 };
 
 const EVENT_ICONS: Record<EventType, string> = {
-  birthday: "🎂",
-  procedure_anniversary: "💪",
-  wellness_checkin: "💙",
+  birthday: "ðŸŽ‚",
+  procedure_anniversary: "ðŸ’ª",
+  wellness_checkin: "ðŸ’™",
 };
 
 const EVENT_COLORS: Record<EventType, string> = {
@@ -74,6 +74,9 @@ export default function Dashboard() {
   const [sendTime, setSendTime] = useState("08:00");
   const [timeSaved, setTimeSaved] = useState(false);
   const [today, setToday] = useState("");
+  const [testPhone, setTestPhone] = useState("+18763178997");
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ ok?: boolean; error?: string } | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("sendTime");
@@ -125,6 +128,19 @@ export default function Dashboard() {
     setLogs((prev) => [...data.logs, ...prev]);
     setSending(false);
     setActiveTab("logs");
+  }
+
+  async function sendTestMessage() {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/test-whatsapp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: testPhone }) });
+      const data = await res.json();
+      setTestResult(data);
+    } catch (e) {
+      setTestResult({ error: String(e) });
+    }
+    setTesting(false);
   }
 
   return (
@@ -192,12 +208,12 @@ export default function Dashboard() {
                     onClick={() => { localStorage.setItem("sendTime", sendTime); setTimeSaved(true); setTimeout(() => setTimeSaved(false), 2000); }}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                   >
-                    {timeSaved ? "✓ Saved" : "Save Time"}
+                    {timeSaved ? "âœ“ Saved" : "Save Time"}
                   </button>
                 </div>
               </div>
               <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg px-4 py-2 text-sm text-blue-700">
-                🕐 Next auto-send: <strong>{sendTime} UTC</strong> — to change the server schedule, update <code className="bg-blue-100 px-1 rounded">SEND_TIME</code> in your Vercel environment variables.
+                ðŸ• Next auto-send: <strong>{sendTime} UTC</strong> â€” to change the server schedule, update <code className="bg-blue-100 px-1 rounded">SEND_TIME</code> in your Vercel environment variables.
               </div>
             </div>
 
@@ -217,7 +233,7 @@ export default function Dashboard() {
                 <div className="px-6 py-12 text-center text-gray-400">Loading...</div>
               ) : todaysEvents.length === 0 ? (
                 <div className="px-6 py-12 text-center">
-                  <p className="text-4xl mb-2">✅</p>
+                  <p className="text-4xl mb-2">âœ…</p>
                   <p className="text-gray-500 font-medium">No greetings scheduled for today</p>
                   <p className="text-gray-400 text-sm mt-1">Check back tomorrow!</p>
                 </div>
@@ -234,7 +250,7 @@ export default function Dashboard() {
                           </span>
                           {event.channels.map((ch) => (
                             <span key={ch} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
-                              {ch === "sms" ? "📱 SMS" : "✉️ Email"}
+                              {ch === "sms" ? "ðŸ“± SMS" : "âœ‰ï¸ Email"}
                             </span>
                           ))}
                         </div>
@@ -248,7 +264,7 @@ export default function Dashboard() {
             {/* Upcoming Events */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-semibold text-gray-900">Upcoming Greetings — Next 30 Days</h2>
+                <h2 className="font-semibold text-gray-900">Upcoming Greetings â€” Next 30 Days</h2>
                 <span className="text-sm text-gray-400">{upcomingEvents.length} scheduled</span>
               </div>
               {upcomingEvents.length === 0 ? (
@@ -266,7 +282,7 @@ export default function Dashboard() {
                           </span>
                           {event.channels.map((ch) => (
                             <span key={ch} className="text-xs text-gray-400">
-                              {ch === "sms" ? "📱" : "✉️"}
+                              {ch === "sms" ? "ðŸ“±" : "âœ‰ï¸"}
                             </span>
                           ))}
                         </div>
@@ -305,7 +321,7 @@ export default function Dashboard() {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">{p.email} · {p.phone}</p>
+                    <p className="text-sm text-gray-500">{p.email} Â· {p.phone}</p>
                   </div>
                   <div className="text-right text-sm text-gray-500">
                     <p>DOB: {p.dateOfBirth}</p>
@@ -339,10 +355,10 @@ export default function Dashboard() {
                             ? "bg-green-100 text-green-700 border-green-200"
                             : "bg-red-100 text-red-700 border-red-200"
                         }`}>
-                          {log.status === "sent" ? "✓ Sent" : "✗ Failed"}
+                          {log.status === "sent" ? "âœ“ Sent" : "âœ— Failed"}
                         </span>
                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200">
-                          {log.channel === "sms" ? "📱 SMS" : "✉️ Email"}
+                          {log.channel === "sms" ? "ðŸ“± SMS" : "âœ‰ï¸ Email"}
                         </span>
                       </div>
                       <p className="text-sm text-gray-500 mt-1 line-clamp-2">{log.message}</p>
@@ -388,7 +404,7 @@ export default function Dashboard() {
                 {/* Download template */}
                 <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
                   <div>
-                    <p className="text-sm font-semibold text-blue-800">Step 1 — Download the template</p>
+                    <p className="text-sm font-semibold text-blue-800">Step 1 â€” Download the template</p>
                     <p className="text-xs text-blue-600 mt-0.5">Fill it in with patient data, then upload below.</p>
                   </div>
                   <a
@@ -396,20 +412,20 @@ export default function Dashboard() {
                     download="Lane-Medical-Patient-Template.csv"
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
                   >
-                    ⬇ Download Template
+                    â¬‡ Download Template
                   </a>
                 </div>
 
                 {/* File upload */}
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Step 2 — Upload completed file (.csv)</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Step 2 â€” Upload completed file (.csv)</p>
                   <div
                     className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
                     onClick={() => document.getElementById("file-input")?.click()}
                   >
-                    <p className="text-3xl mb-2">📂</p>
+                    <p className="text-3xl mb-2">ðŸ“‚</p>
                     <p className="font-medium text-gray-700">{importFile ? importFile.name : "Click to select your CSV file"}</p>
-                    <p className="text-sm text-gray-400 mt-1">.csv recommended · .xlsx also supported</p>
+                    <p className="text-sm text-gray-400 mt-1">.csv recommended Â· .xlsx also supported</p>
                     <input
                       id="file-input"
                       type="file"
@@ -435,7 +451,7 @@ export default function Dashboard() {
                 {importResult && (
                   <div className="space-y-2">
                     <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-4 space-y-1">
-                      <p className="text-green-700 font-semibold">✓ {importResult.imported} new patient{importResult.imported !== 1 ? "s" : ""} imported{importResult.saved ? " and saved!" : "!"}</p>
+                      <p className="text-green-700 font-semibold">âœ“ {importResult.imported} new patient{importResult.imported !== 1 ? "s" : ""} imported{importResult.saved ? " and saved!" : "!"}</p>
                       <p className="text-green-600 text-sm">
                         {importResult.skipped > 0 ? `${importResult.skipped} duplicate${importResult.skipped !== 1 ? "s" : ""} skipped. ` : ""}
                         {importResult.total} total patients in system.
@@ -444,9 +460,9 @@ export default function Dashboard() {
                     </div>
                     {!importResult.saved && importResult.saveMessage && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
-                        <p className="text-yellow-800 font-semibold text-sm">⚠ Patients parsed but not saved permanently</p>
+                        <p className="text-yellow-800 font-semibold text-sm">âš  Patients parsed but not saved permanently</p>
                         <p className="text-yellow-700 text-sm mt-1">{importResult.saveMessage}</p>
-                        <p className="text-yellow-700 text-sm mt-1">To fix: go to your <strong>Vercel dashboard → Storage → Create KV Database → Connect</strong>, then redeploy.</p>
+                        <p className="text-yellow-700 text-sm mt-1">To fix: go to your <strong>Vercel dashboard â†’ Storage â†’ Create KV Database â†’ Connect</strong>, then redeploy.</p>
                       </div>
                     )}
                   </div>
@@ -501,3 +517,5 @@ function StatCard({ label, value, color }: { label: string; value: number; color
     </div>
   );
 }
+
+

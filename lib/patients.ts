@@ -17,7 +17,7 @@ export const patients: Patient[] = [
     name: "Maria Johnson",
     email: "maria.johnson@email.com",
     phone: "+18763178997",
-    dateOfBirth: "2026-06-11",
+    dateOfBirth: "2026-06-23",
     procedureDate: "2025-06-09",
     lastVisit: "2026-01-15",
     preferredContact: "both",
@@ -28,7 +28,7 @@ export const patients: Patient[] = [
     name: "James Williams",
     email: "timshernc@gmail.com",
     phone: "+18763178997",
-    dateOfBirth: "2026-06-12",
+    dateOfBirth: "2026-06-23",
     lastVisit: "2026-03-20",
     preferredContact: "whatsapp",
     active: true,
@@ -54,4 +54,5 @@ export const patients: Patient[] = [
     active: true,
   },
 ];
+
 
