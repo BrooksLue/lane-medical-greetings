@@ -1,4 +1,4 @@
-export type Patient = {
+﻿export type Patient = {
   id: string;
   name: string;
   email: string;
@@ -6,11 +6,11 @@ export type Patient = {
   dateOfBirth: string;       // YYYY-MM-DD
   procedureDate?: string;    // YYYY-MM-DD, optional
   lastVisit?: string;        // YYYY-MM-DD, optional
-  preferredContact: "sms" | "email" | "both";
+  preferredContact: "whatsapp" | "email" | "both";
   active: boolean;
 };
 
-// Seed data — replace with real DB or CSV import
+// Seed data â€” replace with real DB or CSV import
 export const patients: Patient[] = [
   {
     id: "1",
@@ -30,7 +30,7 @@ export const patients: Patient[] = [
     phone: "+18763178997",
     dateOfBirth: "2026-06-12",
     lastVisit: "2026-03-20",
-    preferredContact: "sms",
+    preferredContact: "whatsapp",
     active: true,
   },
   {
@@ -54,3 +54,4 @@ export const patients: Patient[] = [
     active: true,
   },
 ];
+

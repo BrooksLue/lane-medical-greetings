@@ -63,7 +63,12 @@ export async function POST(req: NextRequest) {
       dateOfBirth: formatDate(get(row, "dateofbirth", "dob", "birthdate", "birthday")),
       procedureDate: formatDate(get(row, "proceduredate", "surgerydate")),
       lastVisit: formatDate(get(row, "lastvisit", "lastappointment")),
-      preferredContact: (get(row, "preferredcontact", "contact", "contactmethod") || "both") as "sms" | "email" | "both",
+      preferredContact: (() => {
+        const val = get(row, "preferredcontact", "contact", "contactmethod", "channel").toLowerCase();
+        if (val.includes("email") && (val.includes("sms") || val.includes("whatsapp") || val.includes("both"))) return "both";
+        if (val.includes("email")) return "email";
+        return "whatsapp"; // default to whatsapp (sms/whatsapp/text/both all map here)
+      })() as "whatsapp" | "email" | "both",
       active: true,
     }))
     .filter((p) => p.name && (p.email || p.phone));

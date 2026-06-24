@@ -1,4 +1,4 @@
-import { Patient } from "./patients";
+﻿import { Patient } from "./patients";
 import { GreetingEvent, GreetingLog, buildMessage } from "./greetings";
 
 async function sendWhatsApp(to: string, body: string): Promise<void> {
@@ -31,7 +31,7 @@ async function sendWhatsApp(to: string, body: string): Promise<void> {
 export async function sendGreeting(
   patient: Patient,
   event: GreetingEvent,
-  channel: "sms" | "email"
+  channel: "whatsapp" | "email"
 ): Promise<GreetingLog> {
   const { subject, body } = buildMessage(event, channel);
   const logBase = {
@@ -45,12 +45,11 @@ export async function sendGreeting(
   };
 
   try {
-    if (channel === "sms") {
-      // Send via WhatsApp instead of SMS
+    if (channel === "whatsapp") {
       await sendWhatsApp(patient.phone, body);
     } else {
       if (!process.env.SENDGRID_API_KEY) {
-        return { ...logBase, status: "failed", error: "Email not configured — SendGrid API key not set." };
+        return { ...logBase, status: "failed", error: "Email not configured - SendGrid API key not set." };
       }
       const sgMail = (await import("@sendgrid/mail")).default;
       sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
