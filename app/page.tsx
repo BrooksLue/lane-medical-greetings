@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
@@ -48,9 +48,9 @@ type Log = {
 };
 
 const EVENT_ICONS: Record<EventType, string> = {
-  birthday: "ðŸŽ‚",
-  procedure_anniversary: "ðŸ’ª",
-  wellness_checkin: "ðŸ’™",
+  birthday: "🎂",
+  procedure_anniversary: "💪",
+  wellness_checkin: "💙",
 };
 
 const EVENT_COLORS: Record<EventType, string> = {
@@ -106,7 +106,6 @@ export default function Dashboard() {
       try { data = JSON.parse(text); } catch { setImportError(`Server response was not JSON: ${text.slice(0, 300)}`); setImporting(false); return; }
       if (data.error) { setImportError(data.error); } else {
         setImportResult(data);
-        // Refresh patient list and upcoming events
         fetch("/api/patients")
           .then((r) => r.json())
           .then((d) => {
@@ -134,7 +133,11 @@ export default function Dashboard() {
     setTesting(true);
     setTestResult(null);
     try {
-      const res = await fetch("/api/test-whatsapp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: testPhone }) });
+      const res = await fetch("/api/test-whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: testPhone }),
+      });
       const data = await res.json();
       setTestResult(data);
     } catch (e) {
@@ -172,9 +175,7 @@ export default function Dashboard() {
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 rounded-md text-sm font-medium capitalize transition-all ${
-                activeTab === tab
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
+                activeTab === tab ? "bg-white text-blue-600 shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
               {tab}
@@ -190,12 +191,11 @@ export default function Dashboard() {
               <StatCard label="Greetings Sent" value={logs.filter((l) => l.status === "sent").length} color="green" />
             </div>
 
-            {/* Scheduled Send Time */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-4">
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div>
                   <p className="font-semibold text-gray-900">Scheduled Send Time</p>
-                  <p className="text-sm text-gray-500 mt-0.5">Greetings auto-send daily at this time (UTC). Manual send below overrides this.</p>
+                  <p className="text-sm text-gray-500 mt-0.5">Greetings auto-send daily at this time (UTC).</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <input
@@ -208,12 +208,36 @@ export default function Dashboard() {
                     onClick={() => { localStorage.setItem("sendTime", sendTime); setTimeSaved(true); setTimeout(() => setTimeSaved(false), 2000); }}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                   >
-                    {timeSaved ? "âœ“ Saved" : "Save Time"}
+                    {timeSaved ? "Saved!" : "Save Time"}
                   </button>
                 </div>
               </div>
               <div className="mt-3 bg-blue-50 border border-blue-100 rounded-lg px-4 py-2 text-sm text-blue-700">
-                ðŸ• Next auto-send: <strong>{sendTime} UTC</strong> â€” to change the server schedule, update <code className="bg-blue-100 px-1 rounded">SEND_TIME</code> in your Vercel environment variables.
+                Next auto-send: <strong>{sendTime} UTC</strong> — update <code className="bg-blue-100 px-1 rounded">SEND_TIME</code> in Vercel env vars to change the server schedule.
+              </div>
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <p className="text-sm font-semibold text-gray-700 mb-2">Send Test WhatsApp Message</p>
+                <div className="flex gap-2 flex-wrap">
+                  <input
+                    type="text"
+                    value={testPhone}
+                    onChange={(e) => setTestPhone(e.target.value)}
+                    placeholder="+18763178997"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 w-48"
+                  />
+                  <button
+                    onClick={sendTestMessage}
+                    disabled={testing}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+                  >
+                    {testing ? "Sending..." : "Send Test"}
+                  </button>
+                </div>
+                {testResult && (
+                  <div className={`mt-2 text-sm px-3 py-2 rounded-lg ${testResult.ok ? "bg-green-50 text-green-700 border border-green-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                    {testResult.ok ? "Message sent! Check your WhatsApp." : `Failed: ${testResult.error}`}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -233,9 +257,8 @@ export default function Dashboard() {
                 <div className="px-6 py-12 text-center text-gray-400">Loading...</div>
               ) : todaysEvents.length === 0 ? (
                 <div className="px-6 py-12 text-center">
-                  <p className="text-4xl mb-2">âœ…</p>
                   <p className="text-gray-500 font-medium">No greetings scheduled for today</p>
-                  <p className="text-gray-400 text-sm mt-1">Check back tomorrow!</p>
+                  <p className="text-gray-400 text-sm mt-1">Check back tomorrow or use the Test button above.</p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-50">
@@ -250,7 +273,7 @@ export default function Dashboard() {
                           </span>
                           {event.channels.map((ch) => (
                             <span key={ch} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
-                              {ch === "sms" ? "ðŸ“± SMS" : "âœ‰ï¸ Email"}
+                              {ch === "whatsapp" ? "WhatsApp" : "Email"}
                             </span>
                           ))}
                         </div>
@@ -261,10 +284,9 @@ export default function Dashboard() {
               )}
             </div>
 
-            {/* Upcoming Events */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-semibold text-gray-900">Upcoming Greetings â€” Next 30 Days</h2>
+                <h2 className="font-semibold text-gray-900">Upcoming Greetings — Next 30 Days</h2>
                 <span className="text-sm text-gray-400">{upcomingEvents.length} scheduled</span>
               </div>
               {upcomingEvents.length === 0 ? (
@@ -282,7 +304,7 @@ export default function Dashboard() {
                           </span>
                           {event.channels.map((ch) => (
                             <span key={ch} className="text-xs text-gray-400">
-                              {ch === "sms" ? "ðŸ“±" : "âœ‰ï¸"}
+                              {ch === "whatsapp" ? "WhatsApp" : "Email"}
                             </span>
                           ))}
                         </div>
@@ -310,7 +332,7 @@ export default function Dashboard() {
               {patients.map((p) => (
                 <div key={p.id} className="px-6 py-4 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold text-sm">
-                    {p.name.split(" ").map((n) => n[0]).join("")}
+                    {p.name.split(" ").map((n: string) => n[0]).join("")}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -321,7 +343,7 @@ export default function Dashboard() {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">{p.email} Â· {p.phone}</p>
+                    <p className="text-sm text-gray-500">{p.email} &middot; {p.phone}</p>
                   </div>
                   <div className="text-right text-sm text-gray-500">
                     <p>DOB: {p.dateOfBirth}</p>
@@ -346,7 +368,7 @@ export default function Dashboard() {
               <div className="divide-y divide-gray-50">
                 {logs.map((log) => (
                   <div key={log.id} className="px-6 py-4 flex items-start gap-4">
-                    <span className="text-xl mt-0.5">{EVENT_ICONS[log.type]}</span>
+                    <span className="text-xl mt-0.5">{EVENT_ICONS[log.type as EventType]}</span>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-gray-900">{log.patientName}</p>
@@ -355,10 +377,10 @@ export default function Dashboard() {
                             ? "bg-green-100 text-green-700 border-green-200"
                             : "bg-red-100 text-red-700 border-red-200"
                         }`}>
-                          {log.status === "sent" ? "âœ“ Sent" : "âœ— Failed"}
+                          {log.status === "sent" ? "Sent" : "Failed"}
                         </span>
                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200">
-                          {log.channel === "sms" ? "ðŸ“± SMS" : "âœ‰ï¸ Email"}
+                          {log.channel === "whatsapp" ? "WhatsApp" : "Email"}
                         </span>
                       </div>
                       <p className="text-sm text-gray-500 mt-1 line-clamp-2">{log.message}</p>
@@ -370,7 +392,7 @@ export default function Dashboard() {
             )}
           </div>
         )}
-        {/* Import Tab */}
+
         {activeTab === "import" && (
           <div className="space-y-6">
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -379,7 +401,6 @@ export default function Dashboard() {
                 <p className="text-sm text-gray-500 mt-1">Upload a spreadsheet with patient data. Required columns: Name, Phone or Email, Date of Birth.</p>
               </div>
               <div className="px-6 py-6 space-y-4">
-                {/* Column reference */}
                 <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
                   <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Accepted Column Names</p>
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -390,7 +411,7 @@ export default function Dashboard() {
                       ["Date of Birth", "Date of Birth, DOB, Birthdate, Birthday"],
                       ["Procedure Date", "Procedure Date, Surgery Date"],
                       ["Last Visit", "Last Visit, Last Appointment"],
-                      ["Contact Method", "Preferred Contact, Contact (sms/email/both)"],
+                      ["Contact Method", "Preferred Contact, Contact (whatsapp/email/both)"],
                     ].map(([field, accepted]) => (
                       <div key={field} className="flex gap-2">
                         <span className="font-medium text-gray-700 w-28 shrink-0">{field}:</span>
@@ -400,11 +421,9 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                {/* File upload */}
-                {/* Download template */}
                 <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
                   <div>
-                    <p className="text-sm font-semibold text-blue-800">Step 1 â€” Download the template</p>
+                    <p className="text-sm font-semibold text-blue-800">Step 1 — Download the template</p>
                     <p className="text-xs text-blue-600 mt-0.5">Fill it in with patient data, then upload below.</p>
                   </div>
                   <a
@@ -412,20 +431,19 @@ export default function Dashboard() {
                     download="Lane-Medical-Patient-Template.csv"
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors whitespace-nowrap"
                   >
-                    â¬‡ Download Template
+                    Download Template
                   </a>
                 </div>
 
-                {/* File upload */}
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Step 2 â€” Upload completed file (.csv)</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-2">Step 2 — Upload completed file (.csv)</p>
                   <div
                     className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
                     onClick={() => document.getElementById("file-input")?.click()}
                   >
-                    <p className="text-3xl mb-2">ðŸ“‚</p>
+                    <p className="text-3xl mb-2">📂</p>
                     <p className="font-medium text-gray-700">{importFile ? importFile.name : "Click to select your CSV file"}</p>
-                    <p className="text-sm text-gray-400 mt-1">.csv recommended Â· .xlsx also supported</p>
+                    <p className="text-sm text-gray-400 mt-1">.csv recommended &middot; .xlsx also supported</p>
                     <input
                       id="file-input"
                       type="file"
@@ -451,7 +469,9 @@ export default function Dashboard() {
                 {importResult && (
                   <div className="space-y-2">
                     <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-4 space-y-1">
-                      <p className="text-green-700 font-semibold">âœ“ {importResult.imported} new patient{importResult.imported !== 1 ? "s" : ""} imported{importResult.saved ? " and saved!" : "!"}</p>
+                      <p className="text-green-700 font-semibold">
+                        {importResult.imported} new patient{importResult.imported !== 1 ? "s" : ""} imported{importResult.saved ? " and saved!" : "!"}
+                      </p>
                       <p className="text-green-600 text-sm">
                         {importResult.skipped > 0 ? `${importResult.skipped} duplicate${importResult.skipped !== 1 ? "s" : ""} skipped. ` : ""}
                         {importResult.total} total patients in system.
@@ -460,9 +480,8 @@ export default function Dashboard() {
                     </div>
                     {!importResult.saved && importResult.saveMessage && (
                       <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-3">
-                        <p className="text-yellow-800 font-semibold text-sm">âš  Patients parsed but not saved permanently</p>
+                        <p className="text-yellow-800 font-semibold text-sm">Patients parsed but not saved permanently</p>
                         <p className="text-yellow-700 text-sm mt-1">{importResult.saveMessage}</p>
-                        <p className="text-yellow-700 text-sm mt-1">To fix: go to your <strong>Vercel dashboard â†’ Storage â†’ Create KV Database â†’ Connect</strong>, then redeploy.</p>
                       </div>
                     )}
                   </div>
@@ -470,7 +489,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Template download guide */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-5">
               <h3 className="font-semibold text-gray-900 mb-2">Send This Template to Lane Medical</h3>
               <p className="text-sm text-gray-500 mb-3">Ask their front desk to fill in this spreadsheet with patient data and send it back to you.</p>
@@ -486,7 +504,7 @@ export default function Dashboard() {
                   <tbody>
                     {[
                       ["Maria Johnson","maria@email.com","+1876xxxxxxx","1975-06-09","2025-01-15","2026-03-01","both"],
-                      ["James Williams","james@email.com","+1876xxxxxxx","1982-03-22","","2026-02-10","sms"],
+                      ["James Williams","james@email.com","+1876xxxxxxx","1982-03-22","","2026-02-10","whatsapp"],
                     ].map((row, i) => (
                       <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                         {row.map((cell, ci) => <td key={ci} className="px-3 py-2 text-gray-600">{cell}</td>)}
@@ -498,7 +516,6 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
@@ -517,5 +534,3 @@ function StatCard({ label, value, color }: { label: string; value: number; color
     </div>
   );
 }
-
-
