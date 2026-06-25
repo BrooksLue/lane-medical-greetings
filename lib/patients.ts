@@ -3,23 +3,22 @@
   name: string;
   email: string;
   phone: string;
-  dateOfBirth: string;       // YYYY-MM-DD
-  procedureDate?: string;    // YYYY-MM-DD, optional
-  lastVisit?: string;        // YYYY-MM-DD, optional
+  dateOfBirth: string;
+  procedureDate?: string;
+  lastVisit?: string;
   preferredContact: "whatsapp" | "email" | "both";
   active: boolean;
 };
 
-// Seed data â€” replace with real DB or CSV import
 export const patients: Patient[] = [
   {
     id: "1",
     name: "Maria Johnson",
     email: "maria.johnson@email.com",
     phone: "+18763178997",
-    dateOfBirth: "2026-06-23",
-    procedureDate: "2025-06-09",
-    lastVisit: "2026-01-15",
+    dateOfBirth: "1990-06-24",
+    procedureDate: "2025-06-24",
+    lastVisit: "2026-05-25",
     preferredContact: "both",
     active: true,
   },
@@ -28,8 +27,8 @@ export const patients: Patient[] = [
     name: "James Williams",
     email: "timshernc@gmail.com",
     phone: "+18763178997",
-    dateOfBirth: "2026-06-23",
-    lastVisit: "2026-03-20",
+    dateOfBirth: "1985-06-24",
+    lastVisit: "2026-05-25",
     preferredContact: "whatsapp",
     active: true,
   },
@@ -54,5 +53,3 @@ export const patients: Patient[] = [
     active: true,
   },
 ];
-
-

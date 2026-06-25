@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
@@ -77,6 +77,8 @@ export default function Dashboard() {
   const [testPhone, setTestPhone] = useState("+18763178997");
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ ok?: boolean; error?: string } | null>(null);
+  const [clearingPatients, setClearingPatients] = useState(false);
+  const [clearResult, setClearResult] = useState<string>("");
 
   useEffect(() => {
     const saved = localStorage.getItem("sendTime");
@@ -127,6 +129,26 @@ export default function Dashboard() {
     setLogs((prev) => [...data.logs, ...prev]);
     setSending(false);
     setActiveTab("logs");
+  }
+
+  async function clearStoredPatients() {
+    setClearingPatients(true);
+    setClearResult("");
+    try {
+      const res = await fetch("/api/clear-patients", { method: "POST" });
+      const data = await res.json();
+      setClearResult(data.message ?? data.error ?? "Done");
+      if (data.ok) {
+        fetch("/api/patients").then((r) => r.json()).then((d) => {
+          setPatients(d.patients);
+          setTodaysEvents(d.todaysEvents);
+          setUpcomingEvents(d.upcomingEvents ?? []);
+        });
+      }
+    } catch (e) {
+      setClearResult(String(e));
+    }
+    setClearingPatients(false);
   }
 
   async function sendTestMessage() {
@@ -487,6 +509,19 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
+            </div>
+
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-5">
+              <h3 className="font-semibold text-gray-900 mb-2">Reset Patient Data</h3>
+              <p className="text-sm text-gray-500 mb-3">Clear all stored patients from Redis and revert to the built-in seed data. Use this to test all greeting types.</p>
+              <button
+                onClick={clearStoredPatients}
+                disabled={clearingPatients}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {clearingPatients ? "Clearing..." : "Clear Stored Patients"}
+              </button>
+              {clearResult && <p className="mt-2 text-sm text-gray-600">{clearResult}</p>}
             </div>
 
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-6 py-5">
